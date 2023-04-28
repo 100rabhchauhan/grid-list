@@ -1,12 +1,20 @@
-import React,{useCallback,useState} from 'react';
-import { StyleSheet, View, Text, Pressable } from 'react-native';
+import React, { useCallback, useState,useRef } from 'react';
+import { StyleSheet, View, Text, Pressable, Animated,LayoutAnimation,Platform,UIManager } from 'react-native';
 import { FlatGrid } from 'react-native-super-grid';
+import ListItem from './ListItem';
+
+if (
+    Platform.OS === 'android' &&
+    UIManager.setLayoutAnimationEnabledExperimental
+  ) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
 
 export default function GridView() {
-    
+
     const getRandomColor = useCallback(() => {
         return '#' + Math.floor(Math.random() * 16777215).toString(16);
-    },[]);
+    }, []);
 
     const [items, setItems] = useState([
         { id: 0, name: '0', code: getRandomColor() },
@@ -21,15 +29,7 @@ export default function GridView() {
     ]);
 
 
-    const _renderItem = ({item}) => {
-        return(
-            <Pressable onPress={() => {
-                setItems(pS => pS.filter(e => e?.id != item?.id))
-            }} style={[styles.itemContainer, { backgroundColor: item.code }]}>
-                <Text style={styles.itemName}>{item.name}</Text>
-            </Pressable>
-        )
-    }
+    
 
     return (
         <FlatGrid
@@ -37,7 +37,24 @@ export default function GridView() {
             data={items}
             style={styles.gridView}
             spacing={10}
-            renderItem={_renderItem}
+            renderItem={({item}) => <ListItem item={item} onPress={id => {
+                
+                setItems(pS => pS.filter(e => e?.id != id))
+                LayoutAnimation.configureNext({
+                    duration: 600,
+                    // update: {
+                    //   type: LayoutAnimation.Types.linear, 
+                    //   property: LayoutAnimation.Properties.scaleXY,
+                    // },
+                    delete: {
+                      duration: 800,
+                      delay:100,
+                      type: LayoutAnimation.Types.linear,
+                      property: LayoutAnimation.Properties.scaleXY,
+                    },
+                  });
+            }}/>}
+            customFlatList={Animated.FlatList}
         />
     );
 }
